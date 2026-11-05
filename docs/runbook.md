@@ -48,15 +48,15 @@ RDS takes about 10 minutes. Afterwards, **click the confirmation link in the SNS
 While testing, consider adding `acme_ca = "https://acme-staging-v02.api.letsencrypt.org/directory"` to `terraform.tfvars`, then removing it for the final demo. See [certificate limits](#certificate-limits).
 
 ### 4. Connect GitHub
-Create these **repository variables** (Settings → Secrets and variables → Actions → Variables). None of them are secrets, and no AWS keys go in GitHub.
+Add these under Settings → Secrets and variables → Actions. No AWS keys go in GitHub. The role ARN and ECR URL aren't credentials, but they contain the AWS account ID and this repository's logs are public, so they're stored as secrets, which GitHub masks.
 
-| Variable | Value |
-|----------|-------|
-| `AWS_ROLE_ARN` | `terraform -chdir=infra output -raw github_deploy_role_arn` |
-| `AWS_REGION` | `us-west-2` |
-| `ECR_REPO` | `terraform -chdir=infra output -raw ecr_repository_url` |
-| `SITE_URL` | `terraform -chdir=infra output -raw site_url` |
-| `RUNNER` | Only for x86: `ubuntu-24.04` |
+| Name | Kind | Value |
+|------|------|-------|
+| `AWS_ROLE_ARN` | Secret | `terraform -chdir=infra output -raw github_deploy_role_arn` |
+| `ECR_REPO` | Secret | `terraform -chdir=infra output -raw ecr_repository_url` |
+| `AWS_REGION` | Variable | `us-west-2` |
+| `SITE_URL` | Variable | `terraform -chdir=infra output -raw site_url` |
+| `RUNNER` | Variable | Only for x86: `ubuntu-24.04` |
 
 ### 5. First deploy and database bootstrap
 Push to `main`. CI runs, then Deploy builds and pushes the image. **The first deploy's "Run deploy.sh" step is expected to fail**, because the database has no roles or tables yet. Copy the commit SHA, then open a shell on the instance. There's no SSH: use Session Manager.

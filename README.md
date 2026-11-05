@@ -80,7 +80,7 @@ The short version, with the details in [the runbook](docs/runbook.md#first-time-
 
 1. Create the S3 bucket for Terraform state, once, by hand.
 2. Fill in `infra/terraform.tfvars`, then run `terraform init` and `terraform apply`.
-3. Confirm the SNS email, and add the four repository variables to GitHub. None of them are secrets.
+3. Confirm the SNS email, and add the GitHub Actions variables and secrets listed in the runbook. None of them are credentials.
 4. Push to `main`. CI runs, then the image is built and pushed.
 5. Open a Session Manager shell and run `bootstrap-db.sh` once. It creates the database roles and tables, seeds the demo data and deploys.
 

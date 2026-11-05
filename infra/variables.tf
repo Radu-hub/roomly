@@ -14,6 +14,13 @@ variable "github_repository" {
   type        = string
 }
 
+# Newer repositories use GitHub's immutable OIDC subject, which includes numeric owner and
+# repository IDs. An old-format condition never matches them, and AWS only says "not authorized".
+variable "github_oidc_sub_prefix" {
+  description = "Subject prefix from: gh api repos/OWNER/NAME/actions/oidc/customization/sub --jq .sub_claim_prefix"
+  type        = string
+}
+
 variable "instance_type" {
   description = "EC2 type. Must match instance_arch. Check it's free-tier eligible for your account."
   type        = string

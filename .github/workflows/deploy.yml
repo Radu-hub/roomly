@@ -28,7 +28,7 @@ jobs:
     env:
       SHA: ${{ github.event.workflow_run.head_sha }}
       AWS_REGION: ${{ vars.AWS_REGION }}
-      ECR_REPO: ${{ vars.ECR_REPO }}
+      ECR_REPO: ${{ secrets.ECR_REPO }}
       SITE_URL: ${{ vars.SITE_URL }}
     steps:
       - uses: actions/checkout@v4
@@ -37,9 +37,10 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
-          # This repository's logs are public, so keep the account ID out of them.
+          # This repository's logs are public, so keep the account ID out of them. That's also
+          # why the role ARN and ECR URL are stored as secrets: GitHub prints vars before this runs.
           mask-aws-account-id: true
 
       - name: Log in to ECR

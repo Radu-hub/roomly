@@ -2,6 +2,9 @@
 alert_email       = "you@example.com"
 github_repository = "your-github-user/roomly"
 
+# gh api repos/your-github-user/roomly/actions/oidc/customization/sub --jq .sub_claim_prefix
+github_oidc_sub_prefix = "repo:your-github-user@123/roomly@456"
+
 # If t4g.micro isn't free-tier eligible for your account, use x86 instead:
 # instance_type = "t3.micro"
 # instance_arch = "x86_64"
