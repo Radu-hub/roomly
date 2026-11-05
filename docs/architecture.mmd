@@ -1,0 +1,44 @@
+flowchart LR
+  user(["User's browser"])
+  gh(["GitHub Actions"])
+
+  subgraph AWS["AWS · us-west-2"]
+    eip["Elastic IP<br/>(stable public address)"]
+
+    subgraph VPC["VPC 10.20.0.0/16"]
+      subgraph pub["Public subnets (2 AZs) · sg_app: ports 80 + 443 only, no SSH"]
+        subgraph ec2["EC2 t4g.micro · Amazon Linux 2023 · Auto Scaling Group min = max = 1"]
+          caddy["Caddy<br/>HTTPS on :443"]
+          app["FastAPI app<br/>(Docker)"]
+          worker["Worker<br/>(Docker)"]
+          host["deploy.sh<br/>(host)"]
+        end
+      end
+      subgraph priv["Private subnets (2 AZs) · sg_db: :5432 from sg_app only"]
+        rds[("RDS PostgreSQL 16<br/>db.t4g.micro")]
+      end
+    end
+
+    ssm["SSM<br/>Parameter Store · Session Manager · Run Command"]
+    ecr["ECR<br/>(container images)"]
+    cw["CloudWatch<br/>Logs · Metrics · Alarms"]
+    probe["Lambda health probe<br/>every 5 min"]
+    sns["SNS → email"]
+  end
+
+  user -->|"① HTTPS :443"| eip
+  eip --> caddy
+  caddy -->|"② HTTP :8000"| app
+  app -->|"③ SQL over TLS :5432"| rds
+  rds -.->|"④ rows (RLS-filtered)"| app
+  app -.->|"⑤ HTML, back through Caddy to the browser"| caddy
+  worker -->|"SQL over TLS"| rds
+  app -. "secrets at startup" .-> ssm
+  app -. "logs + metrics" .-> cw
+  probe -->|"GET /health"| eip
+  probe --> cw
+  cw --> sns
+  gh -->|"OIDC, then push image"| ecr
+  gh -->|"Run Command: deploy.sh"| ssm
+  ssm --> host
+  host -. "pull image" .-> ecr

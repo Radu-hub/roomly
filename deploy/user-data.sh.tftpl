@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# EC2 bootstrap, run once by cloud-init on every new instance. A replacement instance goes
+# through exactly these steps, so no server holds state that isn't rebuilt from here.
+#
+# Terraform renders this file: a doubled dollar sign is a shell variable, a single one is a
+# value from Terraform.
+set -euo pipefail
+exec > >(tee -a /var/log/roomly-bootstrap.log) 2>&1
+echo "Bootstrap starting at $(date -u)"
+
+dnf install -y docker
+systemctl enable --now docker
+
+# AL2023 doesn't ship the Compose plugin. Pinned and checksummed, so a tampered or
+# surprise release can't reach the server.
+mkdir -p /usr/local/lib/docker/cli-plugins
+curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose \
+  "https://github.com/docker/compose/releases/download/${compose_version}/docker-compose-linux-${compose_arch}"
+echo "${compose_sha256}  /usr/local/lib/docker/cli-plugins/docker-compose" | sha256sum -c -
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+# Move the Elastic IP to this instance, so the public URL survives replacement.
+IMDS_TOKEN="$(curl -fsS -X PUT http://169.254.169.254/latest/api/token \
+  -H 'X-aws-ec2-metadata-token-ttl-seconds: 300')"
+INSTANCE_ID="$(curl -fsS -H "X-aws-ec2-metadata-token: $${IMDS_TOKEN}" \
+  http://169.254.169.254/latest/meta-data/instance-id)"
+aws ec2 associate-address --region "${region}" --instance-id "$${INSTANCE_ID}" \
+  --allocation-id "${eip_allocation_id}" --allow-reassociation
+
+mkdir -p /opt/roomly
+echo '${compose_b64}' | base64 -d >/opt/roomly/compose.prod.yml
+echo '${caddyfile_b64}' | base64 -d >/opt/roomly/Caddyfile
+echo '${deploy_b64}' | base64 -d >/opt/roomly/deploy.sh
+echo '${bootstrap_db_b64}' | base64 -d >/opt/roomly/bootstrap-db.sh
+chmod +x /opt/roomly/deploy.sh /opt/roomly/bootstrap-db.sh
+
+# Not secret: these are addresses and names. Secrets stay in SSM.
+cat >/opt/roomly/env <<ENV
+IMAGE_REPO=${image_repo}
+AWS_REGION=${region}
+SITE_ADDRESS=${site_address}
+ACME_CA=${acme_ca}
+ENV
+
+TAG="$(aws ssm get-parameter --region "${region}" --name /roomly/prod/image_tag \
+  --query Parameter.Value --output text)"
+if [ "$${TAG}" = "none" ]; then
+  echo "No image deployed yet: the first CI run or bootstrap-db.sh will start the app."
+else
+  /opt/roomly/deploy.sh "$${TAG}"
+fi
+echo "Bootstrap finished at $(date -u)"

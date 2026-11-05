@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Rooms · {{ ctx.org.name }}{% endblock %}
+{% block content %}
+<h1>Rooms</h1>
+<table class="list rooms-admin">
+  <thead><tr><th scope="col">Name</th><th scope="col">Capacity</th><th scope="col">Features</th><th scope="col">Active</th><th scope="col"><span class="visually-hidden">Save</span></th></tr></thead>
+  <tbody>
+  {% for room in rooms %}
+    <tr class="{{ 'inactive' if not room.is_active }}">
+      {# form= ties these inputs to one form, because a <form> can't wrap table cells. #}
+      <td><input form="room-{{ room.id }}" name="name" value="{{ room.name }}" required maxlength="60" aria-label="Name"></td>
+      <td><input form="room-{{ room.id }}" type="number" name="capacity" value="{{ room.capacity }}" min="1" max="500" required aria-label="Capacity"></td>
+      <td class="checks">
+        {% for feature in features %}
+        <label><input form="room-{{ room.id }}" type="checkbox" name="features" value="{{ feature }}"{{ ' checked' if feature in room.features }}> {{ feature }}</label>
+        {% endfor %}
+      </td>
+      <td><label><input form="room-{{ room.id }}" type="checkbox" name="is_active"{{ ' checked' if room.is_active }}> Active</label></td>
+      <td>
+        <form id="room-{{ room.id }}" method="post" action="/o/{{ ctx.slug }}/admin/rooms/{{ room.id }}">
+          <input type="hidden" name="csrf" value="{{ csrf }}"><button>Save</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<h2>Add a room</h2>
+<form method="post" action="/o/{{ ctx.slug }}/admin/rooms" class="stack narrow">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <label>Name <input name="name" required maxlength="60"></label>
+  <label>Capacity <input type="number" name="capacity" min="1" max="500" value="4" required></label>
+  <fieldset>
+    <legend>Features</legend>
+    {% for feature in features %}
+    <label><input type="checkbox" name="features" value="{{ feature }}"> {{ feature }}</label>
+    {% endfor %}
+  </fieldset>
+  <button class="primary">Add room</button>
+</form>
+{% endblock %}

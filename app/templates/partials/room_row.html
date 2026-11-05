@@ -1,0 +1,26 @@
+<tr id="room-{{ row.id }}" data-room="{{ row.name }}" data-room-id="{{ row.id }}">
+  <th scope="row">
+    {{ row.name }}
+    <span class="room-meta">{{ row.capacity }} seats
+      {% for feature in row.features %}<span title="{{ feature }}" aria-label="{{ feature }}">{{ grid.icons[feature] }}</span>{% endfor %}
+    </span>
+  </th>
+  {% for cell in row.cells %}
+    {% if cell.kind == "booked" %}
+    <td colspan="{{ cell.span }}" class="booked{{ ' mine' if cell.mine }}{{ ' ended' if cell.ended }}">
+      <a href="/o/{{ ctx.slug }}/bookings/{{ cell.id }}">
+        <strong>{{ cell.title }}</strong>
+        <span>{{ '★ You' if cell.mine else cell.first_name }}</span>
+      </a>
+    </td>
+    {% elif cell.kind == "past" %}
+    <td class="past"><span class="visually-hidden">Past</span></td>
+    {% else %}
+    <td class="free" data-start="{{ cell.slot.local_start }}">
+      <button hx-get="/o/{{ ctx.slug }}/bookings/new?room_id={{ row.id }}&start={{ cell.slot.local_start }}"
+              hx-target="#dialog-slot"
+              aria-label="Book {{ row.name }} at {{ cell.slot.label }}">+</button>
+    </td>
+    {% endif %}
+  {% endfor %}
+</tr>

@@ -1,0 +1,9 @@
+{% if row %}{% include "partials/room_row.html" %}{% endif %}
+{# Wrapped in <template> because a <div> isn't valid next to a <tr>. HTMX unwraps it. #}
+<template>
+  <div id="dialog-slot" hx-swap-oob="true">
+    {% if error and room %}{% include "partials/booking_form.html" %}{% elif error %}
+    <dialog open class="booking-dialog"><p class="error" role="alert">{{ error }}</p><form method="dialog"><button class="link">Close</button></form></dialog>
+    {% endif %}
+  </div>
+</template>

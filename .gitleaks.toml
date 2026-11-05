@@ -1,0 +1,9 @@
+title = "Roomly gitleaks config"
+
+[extend]
+useDefault = true
+
+# Only the literal throwaway values in the test suite and CI are allowed.
+[allowlist]
+description = "Ephemeral test-only values, which protect nothing"
+regexes = ['''test-only-[a-z-]+''', '''ci-only-[a-z-]+''']

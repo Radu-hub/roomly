@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}My bookings · {{ ctx.org.name }}{% endblock %}
+{% block content %}
+<h1>My upcoming bookings</h1>
+{% if bookings %}
+<table class="list">
+  <thead><tr><th scope="col">When</th><th scope="col">Room</th><th scope="col">Title</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+  <tbody>
+  {% for booking in bookings %}
+    <tr>
+      <td>{{ booking.when.start.strftime('%a %b %-d, %H:%M') }} to {{ booking.when.end.strftime('%H:%M') }}</td>
+      <td>{{ booking.room_name }}</td>
+      <td><a href="/o/{{ ctx.slug }}/bookings/{{ booking.id }}">{{ booking.title }}</a></td>
+      <td class="actions">
+        {% if booking.can_check_in %}
+        <form method="post" action="/o/{{ ctx.slug }}/bookings/{{ booking.id }}/check-in">
+          <input type="hidden" name="csrf" value="{{ csrf }}"><button class="primary">Check in</button>
+        </form>
+        {% elif booking.checked_in_at %}<span>✓ Checked in</span>{% endif %}
+        <form method="post" action="/o/{{ ctx.slug }}/bookings/{{ booking.id }}/cancel">
+          <input type="hidden" name="csrf" value="{{ csrf }}"><button>Cancel</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Nothing booked yet. <a href="/o/{{ ctx.slug }}/day">Pick a slot on the day grid</a>.</p>
+{% endif %}
+{% endblock %}

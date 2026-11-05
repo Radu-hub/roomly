@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ grid.day.strftime('%a %b %-d') }} · {{ ctx.org.name }}{% endblock %}
+{% block content %}
+<div class="day-nav">
+  <a class="button" href="?date={{ previous_day }}" aria-label="Previous day">◀</a>
+  <a class="button" href="?date={{ today }}">Today</a>
+  <a class="button" href="?date={{ next_day }}" aria-label="Next day">▶</a>
+  <h1>{{ grid.day.strftime('%A, %B %-d, %Y') }}</h1>
+  <span class="muted">Times in {{ ctx.org.timezone }}</span>
+</div>
+<div id="dialog-slot"></div>
+<div class="grid-scroll">
+  <table class="grid">
+    <thead>
+      <tr>
+        <th scope="col">Room</th>
+        {% for slot in grid.slots %}<th scope="col" class="time">{{ slot.label }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in grid.rows %}{% include "partials/room_row.html" %}{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

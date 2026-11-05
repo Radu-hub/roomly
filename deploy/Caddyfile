@@ -1,0 +1,18 @@
+# ACME_CA points at Let's Encrypt staging while testing, because every replacement
+# instance requests a new certificate. See the rate-limit note in docs/runbook.md.
+{
+	acme_ca {$ACME_CA}
+}
+
+{$SITE_ADDRESS} {
+	encode gzip
+
+	header Strict-Transport-Security "max-age=31536000"
+
+	# Keep a request id if the client sent one, otherwise generate one. The app logs it
+	# and echoes it back, so a user's error can be matched to a log line.
+	@no_request_id not header X-Request-ID *
+	request_header @no_request_id X-Request-ID {http.request.uuid}
+
+	reverse_proxy app:8000
+}

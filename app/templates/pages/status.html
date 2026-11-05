@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Status · Roomly{% endblock %}
+{% block content %}
+{% set database = health.checks.database %}
+<section class="narrow">
+  <h1>System status</h1>
+  <p class="badge {{ 'ok' if health.status == 'ok' else 'bad' }}">{{ '✓ All systems OK' if health.status == 'ok' else '✗ Degraded' }}</p>
+  <dl class="facts">
+    <dt>Database</dt>
+    <dd><span class="badge {{ 'ok' if database.status == 'ok' else 'bad' }}">{{ '✓ ok' if database.status == 'ok' else '✗ ' ~ database.error }}</span></dd>
+    {% if database.status == 'ok' or database.rls_enforced is defined %}
+    <dt>Row-Level Security</dt>
+    <dd><span class="badge {{ 'ok' if database.rls_enforced else 'bad' }}">{{ '✓ enforced' if database.rls_enforced else '✗ not enforced' }}</span></dd>
+    <dt>Database latency</dt><dd>{{ database.latency_ms }} ms</dd>
+    <dt>Schema version</dt><dd>{{ database.schema_version }}</dd>
+    {% endif %}
+    <dt>Version</dt><dd>{{ health.version }} ({{ health.commit[:7] }})</dd>
+    <dt>Built</dt><dd>{{ health.build_time }}</dd>
+    <dt>Uptime</dt><dd>{{ health.uptime_seconds }} s</dd>
+    <dt>Instance</dt><dd>{{ health.instance.id }} · {{ health.instance.az }} · {{ health.instance.type }}</dd>
+    {% if health.stats %}
+    <dt>Organizations</dt><dd>{{ health.stats.organizations }}</dd>
+    <dt>Bookings today (UTC day)</dt><dd>{{ health.stats.bookings_today }}</dd>
+    <dt>Meetings happening now</dt><dd>{{ health.stats.active_bookings_now }}</dd>
+    {% endif %}
+  </dl>
+  <p><a href="/health">Raw JSON</a></p>
+</section>
+{% endblock %}

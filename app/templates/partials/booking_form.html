@@ -1,0 +1,21 @@
+{# A <dialog> with the open attribute needs no JavaScript, and <form method="dialog"> closes it natively. #}
+<dialog open class="booking-dialog" aria-labelledby="booking-heading">
+  <h2 id="booking-heading">Book {{ room.name }}</h2>
+  <p class="muted">Starting {{ local_start.replace('T', ' at ') }}</p>
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <form class="stack" hx-post="/o/{{ ctx.slug }}/bookings" hx-target="#room-{{ room.id }}" hx-swap="outerHTML">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <input type="hidden" name="room_id" value="{{ room.id }}">
+    <input type="hidden" name="start" value="{{ local_start }}">
+    <label>Title <input name="title" required maxlength="120" value="{{ title }}" autofocus></label>
+    <label>Duration
+      <select name="duration_minutes">
+        {% for minutes in durations %}
+        <option value="{{ minutes }}"{{ ' selected' if minutes == duration }}>{{ minutes }} minutes</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button class="primary">Book</button>
+  </form>
+  <form method="dialog"><button class="link">Cancel</button></form>
+</dialog>

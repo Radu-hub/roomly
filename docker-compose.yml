@@ -1,0 +1,54 @@
+# Local development: postgres + app + worker. Values come from .env (see .env.example).
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?copy .env.example to .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: &build
+      context: .
+      dockerfile: app/Dockerfile
+      target: dev
+    environment: &app_env
+      APP_ENV: local
+      DATABASE_URL: postgresql://roomly_app:${ROOMLY_APP_PASSWORD}@postgres:5432/roomly?sslmode=disable
+      MIGRATION_DATABASE_URL: postgresql://roomly_owner:${ROOMLY_OWNER_PASSWORD}@postgres:5432/roomly?sslmode=disable
+      SESSION_SECRET: ${SESSION_SECRET}
+      DEMO_MODE: ${DEMO_MODE:-true}
+      DEMO_PASSWORD: ${DEMO_PASSWORD}
+      NO_SHOW_RELEASE: ${NO_SHOW_RELEASE:-false}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./app/roomly:/app/roomly
+      - ./app/templates:/app/templates
+      - ./app/static:/app/static
+      - ./app/tests:/app/tests
+      - ./scripts:/app/scripts
+      - ./db:/app/db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    build: *build
+    command: ["python", "-m", "roomly.worker"]
+    environment: *app_env
+    volumes:
+      - ./app/roomly:/app/roomly
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -1,0 +1,60 @@
+# Production: caddy + app + worker on the EC2 instance. No secret appears here. The app and
+# worker fetch them from SSM at startup with the instance role.
+x-app: &app
+  image: ${IMAGE_REPO}:${TAG}
+  restart: unless-stopped
+  read_only: true
+  tmpfs:
+    - /tmp
+  environment:
+    APP_ENV: prod
+    SSM_PREFIX: /roomly/prod
+    AWS_REGION: ${AWS_REGION}
+    DEMO_MODE: "true"
+    # Off for the demo: nobody checks in to seeded meetings, so they would all disappear.
+    NO_SHOW_RELEASE: "false"
+  logging:
+    driver: awslogs
+    options:
+      awslogs-region: ${AWS_REGION}
+      awslogs-group: /roomly/prod/app
+      # Without this header CloudWatch stores EMF lines as plain logs and extracts no metrics.
+      awslogs-format: json/emf
+      tag: "{{.Name}}"
+
+services:
+  caddy:
+    image: caddy:2.8.4-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS}
+      ACME_CA: ${ACME_CA}
+    volumes:
+      - /opt/roomly/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: ${AWS_REGION}
+        awslogs-group: /roomly/prod/app
+        tag: "{{.Name}}"
+    depends_on:
+      - app
+
+  app:
+    <<: *app
+    # Port 8000 is not published: only Caddy, on the compose network, can reach it.
+
+  worker:
+    <<: *app
+    command: ["python", "-m", "roomly.worker"]
+    healthcheck:
+      disable: true
+
+volumes:
+  caddy_data:
+  caddy_config:

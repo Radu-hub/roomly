@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Roomly{% endblock %}</title>
+  {# Indicator styles and eval are off because the CSP forbids inline styles and scripts.
+     409 and 422 are swapped so that errors can appear inside the booking dialog. #}
+  <meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false,"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"409","swap":true},{"code":"422","swap":true},{"code":"404","swap":true},{"code":"[45]..","swap":false,"error":true}]}'>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/htmx.min.js" defer></script>
+</head>
+<body hx-headers='{"X-CSRF-Token": "{{ csrf }}"}'>
+  <header class="site-header">
+    <a class="brand" href="{% if ctx %}/o/{{ ctx.slug }}/day{% else %}/{% endif %}">🥭 Roomly</a>
+    {% if ctx %}
+    <nav aria-label="Main">
+      <a href="/o/{{ ctx.slug }}/day">Day</a>
+      <a href="/o/{{ ctx.slug }}/find">Find a room</a>
+      <a href="/o/{{ ctx.slug }}/me">My bookings</a>
+      {% if ctx.is_admin %}<a href="/o/{{ ctx.slug }}/admin/rooms">Rooms</a>{% endif %}
+    </nav>
+    <div class="who">
+      <span>{{ ctx.org.name }} · {{ ctx.name }} ({{ ctx.role }})</span>
+      <form method="post" action="/logout">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="link">Log out</button>
+      </form>
+    </div>
+    {% endif %}
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    Served by {{ instance.id }} · {{ instance.az }} · v{{ version }} ({{ commit }}) · rendered in {{ rendered_ms }} ms
+    · <a href="/status">Status</a>
+  </footer>
+</body>
+</html>

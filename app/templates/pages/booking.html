@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ booking.title }} · {{ ctx.org.name }}{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1>{{ booking.title }}</h1>
+  <dl class="facts">
+    <dt>Room</dt><dd>{{ booking.room_name }}</dd>
+    <dt>Booked by</dt><dd>{{ booking.booker }}</dd>
+    <dt>When</dt><dd>{{ when.start.strftime('%a %b %-d, %H:%M') }} to {{ when.end.strftime('%H:%M') }}</dd>
+    {% if booking.checked_in_at %}<dt>Checked in</dt><dd>✓ Yes</dd>{% endif %}
+    {% if booking.cancelled_at %}<dt>Status</dt><dd>Cancelled ({{ booking.cancel_reason }})</dd>{% endif %}
+  </dl>
+  <div class="actions">
+    {% if can_check_in %}
+    <form method="post" action="/o/{{ ctx.slug }}/bookings/{{ booking.id }}/check-in">
+      <input type="hidden" name="csrf" value="{{ csrf }}"><button class="primary">Check in</button>
+    </form>
+    {% endif %}
+    {% if can_cancel %}
+    <form method="post" action="/o/{{ ctx.slug }}/bookings/{{ booking.id }}/cancel">
+      <input type="hidden" name="csrf" value="{{ csrf }}"><button>Cancel booking</button>
+    </form>
+    {% endif %}
+    <a class="button" href="/o/{{ ctx.slug }}/day?date={{ when.start.date() }}">Back to the day</a>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,114 @@
+name: Deploy
+
+# Runs after CI finishes on main. A failed CI run never deploys.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  id-token: write # lets the job exchange its OIDC token for short-lived AWS credentials
+  contents: read
+
+jobs:
+  deploy:
+    # Public repository: never deploy from a pull request or a fork, whatever its branch is called.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    # Native arm64 runner, so no QEMU emulation. Set the RUNNER repository variable to
+    # ubuntu-24.04 if the instance is x86.
+    runs-on: ${{ vars.RUNNER || 'ubuntu-24.04-arm' }}
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      ECR_REPO: ${{ vars.ECR_REPO }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          # This repository's logs are public, so keep the account ID out of them.
+          mask-aws-account-id: true
+
+      - name: Log in to ECR
+        run: |
+          aws ecr get-login-password --region "$AWS_REGION" |
+            docker login --username AWS --password-stdin "${ECR_REPO%%/*}"
+
+      - name: Build and push the image
+        run: |
+          docker build -f app/Dockerfile \
+            --build-arg APP_VERSION="$(grep -m1 '^version' app/pyproject.toml | cut -d'"' -f2)" \
+            --build-arg GIT_SHA="$SHA" \
+            --build-arg BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -t "$ECR_REPO:$SHA" .
+          # Tags are immutable, so re-running this job must not try to push twice.
+          if aws ecr describe-images --repository-name "${ECR_REPO##*/}" \
+              --image-ids imageTag="$SHA" >/dev/null 2>&1; then
+            echo "Image $SHA is already in ECR"
+          else
+            docker push "$ECR_REPO:$SHA"
+          fi
+
+      - name: Find the running instance
+        id: instance
+        run: |
+          INSTANCE_ID="$(aws ec2 describe-instances \
+            --filters Name=tag:App,Values=roomly Name=instance-state-name,Values=running \
+            --query 'Reservations[].Instances[].InstanceId' --output text)"
+          if [ -z "$INSTANCE_ID" ]; then
+            echo "::error::No running instance tagged App=roomly"
+            exit 1
+          fi
+          echo "id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Run deploy.sh on the instance
+        env:
+          INSTANCE_ID: ${{ steps.instance.outputs.id }}
+        run: |
+          COMMAND_ID="$(aws ssm send-command \
+            --document-name AWS-RunShellScript \
+            --instance-ids "$INSTANCE_ID" \
+            --parameters "commands=[\"/opt/roomly/deploy.sh $SHA\"],executionTimeout=[\"600\"]" \
+            --query Command.CommandId --output text)"
+
+          STATUS=Pending
+          for _ in $(seq 1 120); do
+            sleep 5
+            STATUS="$(aws ssm get-command-invocation --command-id "$COMMAND_ID" \
+              --instance-id "$INSTANCE_ID" --query Status --output text 2>/dev/null || echo Pending)"
+            case "$STATUS" in
+              Pending | InProgress | Delayed) ;;
+              *) break ;;
+            esac
+          done
+
+          aws ssm get-command-invocation --command-id "$COMMAND_ID" --instance-id "$INSTANCE_ID" \
+            --query '[StandardOutputContent, StandardErrorContent]' --output text
+          if [ "$STATUS" != "Success" ]; then
+            echo "::error::Deploy finished with status $STATUS. The instance rolled itself back."
+            exit 1
+          fi
+
+      - name: Record the deployed image for replacement instances
+        run: |
+          aws ssm put-parameter --name /roomly/prod/image_tag --value "$SHA" --overwrite
+
+      - name: Smoke test over the public URL
+        run: |
+          curl -fsS --retry 5 --retry-delay 5 --retry-all-errors "$SITE_URL/health" -o health.json
+          jq . health.json
+          test "$(jq -r .commit health.json)" = "$SHA"
+          test "$(jq -r .status health.json)" = "ok"

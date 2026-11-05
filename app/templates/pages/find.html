@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Find a room · {{ ctx.org.name }}{% endblock %}
+{% block content %}
+<h1>Find a room now</h1>
+<form method="get" class="inline-form">
+  <label>People <input type="number" name="capacity" min="1" max="500" value="{{ capacity }}"></label>
+  <label>For
+    <select name="duration">
+      {% for minutes in durations %}<option value="{{ minutes }}"{{ ' selected' if minutes == duration }}>{{ minutes }} minutes</option>{% endfor %}
+    </select>
+  </label>
+  <button class="primary">Search</button>
+</form>
+{% if not within_hours %}
+<p>{{ start_label }} to {{ end_label }} is outside working hours, so nothing can be booked right now. <a href="/o/{{ ctx.slug }}/day">See the day grid</a>.</p>
+{% elif rooms %}
+<p class="muted">Free from {{ start_label }} to {{ end_label }}:</p>
+<ul class="results">
+  {% for room in rooms %}
+  <li>
+    <span><strong>{{ room.name }}</strong> · {{ room.capacity }} seats
+      {% for feature in room.features %}<span title="{{ feature }}" aria-label="{{ feature }}">{{ icons[feature] }}</span>{% endfor %}
+    </span>
+    <form method="post" action="/o/{{ ctx.slug }}/bookings">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="room_id" value="{{ room.id }}">
+      <input type="hidden" name="start" value="{{ start_local }}">
+      <input type="hidden" name="duration_minutes" value="{{ duration }}">
+      <input type="hidden" name="title" value="Quick meeting">
+      <button class="primary">Book</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No room with {{ capacity }}+ seats is free from {{ start_label }} to {{ end_label }}.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check app
+      - run: ruff format --check app
+
+  test:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          # Throwaway: this database exists only for the length of this job.
+          POSTGRES_PASSWORD: ci-only-superuser
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://roomly_app:ci-only-app@localhost:5432/roomly?sslmode=disable
+      MIGRATION_DATABASE_URL: postgresql://roomly_owner:ci-only-owner@localhost:5432/roomly?sslmode=disable
+      SESSION_SECRET: ci-only-session-secret
+      DEMO_PASSWORD: ci-only-demo-password
+      DEMO_MODE: "true"
+      APP_ENV: local
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: pip install -e 'app[dev]'
+      - name: Bootstrap the database
+        run: >
+          psql "postgresql://postgres:ci-only-superuser@localhost:5432/postgres"
+          -v ON_ERROR_STOP=1 -v owner_password=ci-only-owner -v app_password=ci-only-app
+          -f db/000_bootstrap.sql
+      - name: Migrate
+        working-directory: app
+        run: python -m roomly.migrate
+      - name: Test
+        working-directory: app
+        run: pytest -q
+
+  secrets-scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the full history, not just the latest commit
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  terraform:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+      - run: terraform fmt -check -recursive infra
+      - run: terraform -chdir=infra init -backend=false
+      - run: terraform -chdir=infra validate
+
+  docker-build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f app/Dockerfile .

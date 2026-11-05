@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>Book a meeting room in two clicks.</h1>
+  <p>Roomly is a small multi-tenant room booking app. Several organizations share one deployment,
+     each one's data is walled off by the database itself, and a room can never be double-booked,
+     even when 50 people click at once.</p>
+  {% if demo_mode %}
+  <h2>Try it: no sign-up needed</h2>
+  <div class="demo-buttons">
+    {% for slug, role, label in [("acme", "employee", "Acme: employee"), ("acme", "admin", "Acme: admin"), ("globex", "employee", "Globex: employee")] %}
+    <form method="post" action="/demo-login">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="slug" value="{{ slug }}">
+      <input type="hidden" name="role" value="{{ role }}">
+      <button class="primary">{{ label }}</button>
+    </form>
+    {% endfor %}
+  </div>
+  <p class="muted">Demo data resets nightly.</p>
+  {% endif %}
+  <p><a href="/status">System status</a></p>
+</section>
+{% endblock %}
