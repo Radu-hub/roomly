@@ -135,6 +135,7 @@ aws logs tail /roomly/prod/app --region us-west-2 --follow
 ### Symptoms and likely causes
 | Symptom | Likely cause | How to confirm |
 |---------|--------------|----------------|
+| Deploy fails with `Not authorized to perform sts:AssumeRoleWithWebIdentity` | The trust policy's subject doesn't match what GitHub sends. New repositories use immutable subjects with numeric IDs | `gh api repos/OWNER/NAME/actions/oidc/customization/sub --jq .sub_claim_prefix` must equal `github_oidc_sub_prefix` in `terraform.tfvars`. See [the postmortem](POSTMORTEM.md) |
 | Footer says `local` on AWS | IMDS hop limit is 1, so the response is dropped at the container network hop | `docker run --rm curlimages/curl -m 2 http://169.254.169.254/latest/api/token -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60'` times out |
 | App can't read SSM, or times out at startup | Same hop limit, or a missing IAM permission | `docker logs` on the app container; `AccessDenied` means IAM, a timeout means the hop limit |
 | `/health` 503 "database unreachable" | Security group, DB still starting, or wrong host | From the instance: `nc -zv <db-host> 5432`. A timeout points at the security group |
