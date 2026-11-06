@@ -36,7 +36,7 @@ resource "aws_db_instance" "roomly" {
 
   backup_retention_period = 1
 
-  # Assignment only, so `terraform destroy` leaves nothing billing. See
+  # Demo environment only, so `terraform destroy` leaves nothing billing. See
   # docs/production-readiness.md for what changes before real customers.
   deletion_protection = false
   skip_final_snapshot = true

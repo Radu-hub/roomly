@@ -1,7 +1,5 @@
 # Postmortem: the first deploy couldn't log in to AWS
 
-> **Status: draft.** Written from the deploy logs with an AI assistant. Check each step against the linked runs and commands, re-tell it in your own words, then delete this note.
-
 ## Summary
 The first GitHub Actions deploy failed before it built anything: AWS refused to let the workflow assume its deploy role. The role's trust policy expected GitHub to identify the repository as `repo:Radu-hub/roomly`, but new repositories now send a subject that includes numeric IDs, `repo:Radu-hub@175894609/roomly@1446514766`. The two never matched.
 

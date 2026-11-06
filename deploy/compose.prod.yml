@@ -11,7 +11,7 @@ x-app: &app
     SSM_PREFIX: /roomly/prod
     AWS_REGION: ${AWS_REGION}
     DEMO_MODE: "true"
-    # Off for the demo: nobody checks in to seeded meetings, so they would all disappear.
+    # Off in the demo deployment: nobody checks in to seeded meetings, so they would all disappear.
     NO_SHOW_RELEASE: "false"
   logging:
     driver: awslogs

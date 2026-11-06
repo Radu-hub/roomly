@@ -1,4 +1,4 @@
-"""The HTTP behaviour reviewers will see."""
+"""The HTTP behaviour users see."""
 
 from zoneinfo import ZoneInfo
 

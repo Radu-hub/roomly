@@ -193,7 +193,7 @@ CREATE TRIGGER bookings_validate
 -- Row-Level Security
 -- ENABLE (not FORCE): policies apply to every non-owner role, i.e. the app.
 -- The owner bypasses RLS, which is why the app must never connect as owner;
--- the app verifies this at startup (see SPEC.md, "RLS self-check").
+-- the app verifies this at startup (see app/roomly/db.py).
 -- ---------------------------------------------------------------------
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users         ENABLE ROW LEVEL SECURITY;

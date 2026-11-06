@@ -1,7 +1,7 @@
 """Demo data: python -m roomly.seed [--reset]
 
 Connects as roomly_owner. Safe to run repeatedly. --reset also clears all bookings and puts
-the rooms back as seeded, which the worker does nightly so reviewers start clean.
+the rooms back as seeded, which the worker does nightly so visitors start clean.
 """
 
 import random
@@ -95,7 +95,7 @@ def _upsert_org(conn: psycopg.Connection, org: dict, password: str, reset: bool)
         )
 
     if reset:
-        # Reviewers may have renamed, deactivated or added rooms. Bookings are already gone,
+        # Visitors may have renamed, deactivated or added rooms. Bookings are already gone,
         # so nothing references the extra rooms.
         seeded_names = [room[0] for room in org["rooms"]]
         conn.execute(

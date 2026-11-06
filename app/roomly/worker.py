@@ -43,7 +43,7 @@ def main() -> None:
     )
 
     now = datetime.now(UTC)
-    # A restart after today's reset time shouldn't wipe what reviewers are doing right now.
+    # A restart after today's reset time shouldn't wipe what visitors are doing right now.
     last_reset = now.date() if now.hour >= DEMO_RESET_HOUR_UTC else None
     next_no_show_run = 0.0
 

@@ -1,6 +1,6 @@
 # ADR 6: Secrets
 
-**Context.** The app needs database passwords and a session key. None of these can live in the repository, and the assignment shouldn't cost money.
+**Context.** The app needs database passwords and a session key. None of these can live in the repository, and the environment should stay within the free tier.
 
 **Options considered.**
 - **SSM Parameter Store (SecureString):** encrypted with KMS, access controlled by IAM, and free on the standard tier.

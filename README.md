@@ -1,6 +1,6 @@
 # Roomly
 
-A multi-tenant meeting-room booking app: several organizations share one deployment, and the database itself keeps their data apart and prevents double bookings. It's built as a DevOps assignment, so the app is deliberately small and the effort went into how it's deployed and run on AWS.
+A multi-tenant meeting-room booking app: several organizations share one deployment, and the database itself keeps their data apart and prevents double bookings. The app is deliberately small; the effort went into how it's deployed and run on AWS.
 
 **Live app:** https://roomly.52-26-107-185.sslip.io · **Status page:** https://roomly.52-26-107-185.sslip.io/status · **Health check:** https://roomly.52-26-107-185.sslip.io/health
 
@@ -21,18 +21,18 @@ See [docs/architecture.md](docs/architecture.md) for a walkthrough of how a requ
 | G1 | A room can never be double-booked, even under concurrent requests | Postgres `EXCLUDE` constraint | `python scripts/race.py --base-url <URL> --n 50`: 1 created, 49 conflicts |
 | G2 | One organization can't read or change another's data, even if app code has a bug | Row-Level Security + composite foreign keys | `scripts/isolation_demo.sh <URL> <globex_booking_id>`: 404 |
 | G3 | The server can be destroyed and replaced with no manual steps | Auto Scaling Group of 1, user data, Elastic IP re-association | Terminate the instance, then watch the footer's instance id change at the same URL |
-| G4 | Deploys are automatic, keyless, and roll back by themselves if unhealthy | GitHub Actions, OIDC, SSM Run Command, health-gated `deploy.sh` | Push a broken build ([steps](docs/runbook.md#prove-the-automatic-rollback-good-for-the-demo)) |
+| G4 | Deploys are automatic, keyless, and roll back by themselves if unhealthy | GitHub Actions, OIDC, SSM Run Command, health-gated `deploy.sh` | Push a broken build ([steps](docs/runbook.md#prove-the-automatic-rollback)) |
 | G5 | No inbound SSH, no long-lived credentials, no surprise bills | Session Manager, IAM roles, budget alerts | Inspect `sg_app`; GitHub stores no AWS keys |
 
 ## Why I added the optional extras
 
-The assignment says each is optional and asks why I picked them. Each one is here because it backs up a guarantee above, not for its own sake.
+Each one is here because it backs up a guarantee above, not for its own sake.
 
 - **Terraform:** the whole environment is reviewable and can be rebuilt or destroyed with one command, so "no surprise bills" means `terraform destroy` really does remove everything.
 - **CI/CD:** tests and a secret scan run before every deploy. Automatic rollback means a bad push can't take the site down.
 - **Docker:** the same image runs in CI and on the server, so replacing the server doesn't change what runs.
 - **HTTPS:** session cookies and logins shouldn't cross the internet unencrypted. Caddy makes this free and automatic.
-- **Monitoring:** an external probe and budget emails tell me about problems before a reviewer or a bill does.
+- **Monitoring:** an external probe and budget emails tell me about problems before a user or a bill does.
 
 ## Run it locally
 
@@ -129,4 +129,3 @@ The state bucket was created by hand, so [delete it by hand](docs/runbook.md#tea
 - [Postmortem](docs/POSTMORTEM.md)
 - [Before real customers](docs/production-readiness.md)
 - [Runbook](docs/runbook.md)
-- [Original build spec](SPEC.md)

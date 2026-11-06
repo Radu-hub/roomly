@@ -93,10 +93,10 @@ aws ssm put-parameter --name /roomly/prod/image_tag --value <older-sha> --overwr
 
 Rollback restores the app, not the schema. That's why migrations must stay backward compatible with the previous version.
 
-### Prove the automatic rollback (good for the demo)
+### Prove the automatic rollback
 Change the last line of `app/Dockerfile` to `CMD ["python", "-c", "raise SystemExit(1)"]` and push. Tests and the image build pass, since nothing runs that command in CI, but the new container never becomes healthy. Within about 60 seconds the Deploy job fails with "rolling back" in its log, and the site keeps serving the old commit. Revert the commit afterwards.
 
-### Prove self-healing (good for the demo)
+### Prove self-healing
 Note the instance id in the site's footer, then terminate it:
 
 ```bash
@@ -146,6 +146,6 @@ aws logs tail /roomly/prod/app --region us-west-2 --follow
 | Booking at the "wrong" hour | A time zone conversion outside `timeutil.py` | `test_timeutil.py` covers daylight-saving changes |
 
 ### Certificate limits
-Each replacement instance requests a new certificate, and Let's Encrypt limits duplicates to 5 per week for the same set of names. Test with the staging CA. Browsers will warn, and the health probe and CI smoke test will fail, because the staging CA isn't trusted. Switch back to production for the demo.
+Each replacement instance requests a new certificate, and Let's Encrypt limits duplicates to 5 per week for the same set of names. Test with the staging CA. Browsers will warn, and the health probe and CI smoke test will fail, because the staging CA isn't trusted. Switch back to the production CA afterwards.
 
 If sslip.io itself is rate limited, use a domain you own by setting `domain_name` in `terraform.tfvars` and pointing it at the Elastic IP.

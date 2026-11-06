@@ -10,4 +10,4 @@
 
 **Decision.** RDS PostgreSQL 16, `db.t4g.micro`, single-AZ, in private subnets.
 
-**Tradeoffs accepted.** Single-AZ means an AZ failure takes the database down, and backup retention is only 1 day. `deletion_protection = false` and `skip_final_snapshot = true` let `terraform destroy` leave nothing billing, which is right for an assignment and wrong for production.
+**Tradeoffs accepted.** Single-AZ means an AZ failure takes the database down, and backup retention is only 1 day. `deletion_protection = false` and `skip_final_snapshot = true` let `terraform destroy` leave nothing billing, which is right for a demo environment and wrong for production.
