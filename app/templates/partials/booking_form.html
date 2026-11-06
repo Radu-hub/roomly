@@ -7,6 +7,7 @@
     <input type="hidden" name="csrf" value="{{ csrf }}">
     <input type="hidden" name="room_id" value="{{ room.id }}">
     <input type="hidden" name="start" value="{{ local_start }}">
+    <input type="hidden" name="opened_at" value="{{ opened_at.isoformat() }}">
     <label>Title <input name="title" required maxlength="120" value="{{ title }}" autofocus></label>
     <label>Duration
       <select name="duration_minutes">
@@ -15,6 +16,7 @@
         {% endfor %}
       </select>
     </label>
+    {% if limit_note %}<p class="muted note">{{ limit_note }}</p>{% endif %}
     <button class="primary">Book</button>
   </form>
   <form method="dialog"><button class="link">Cancel</button></form>

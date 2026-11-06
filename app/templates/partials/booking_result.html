@@ -2,8 +2,13 @@
 {# Wrapped in <template> because a <div> isn't valid next to a <tr>. HTMX unwraps it. #}
 <template>
   <div id="dialog-slot" hx-swap-oob="true">
-    {% if error and room %}{% include "partials/booking_form.html" %}{% elif error %}
-    <dialog open class="booking-dialog"><p class="error" role="alert">{{ error }}</p><form method="dialog"><button class="link">Close</button></form></dialog>
+    {% if error and room and durations %}{% include "partials/booking_form.html" %}{% elif error %}
+    {# Nothing left to book from this start time, so show the reason without the form. #}
+    <dialog open class="booking-dialog" aria-labelledby="booking-heading">
+      {% if room %}<h2 id="booking-heading">{{ room.name }} is taken at {{ local_start[11:16] }}</h2>{% endif %}
+      <p class="error" role="alert">{{ error }}</p>
+      <form method="dialog"><button class="primary">Pick another time</button></form>
+    </dialog>
     {% endif %}
   </div>
 </template>

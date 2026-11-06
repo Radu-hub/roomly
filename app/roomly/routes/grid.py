@@ -133,6 +133,8 @@ def find_room(
 
     with db.tenant_tx(ctx.org_id) as conn:
         workday_start, workday_end = _workday(conn)
+        # Sent back with "Book" so a conflict can say whether someone got there first.
+        opened_at = conn.execute("SELECT now()").fetchone()[0]
         with conn.cursor(row_factory=dict_row) as cur:
             rooms = cur.execute(
                 """
@@ -163,6 +165,7 @@ def find_room(
         durations=DURATIONS,
         icons=FEATURE_ICONS,
         start_local=local_start.strftime("%Y-%m-%dT%H:%M"),
+        opened_at=opened_at,
         start_label=local_start.strftime("%H:%M"),
         end_label=local_end.strftime("%H:%M"),
     )
