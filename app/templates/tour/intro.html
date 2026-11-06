@@ -1,0 +1,6 @@
+<p class="lead">A meeting-room booking app that several companies share. Each company only ever sees its own rooms and bookings, and a room can never be double-booked.</p>
+<ul class="facts-list">
+  <li><strong>Runs on</strong> one Linux EC2 server in AWS, with a PostgreSQL database</li>
+  <li><strong>Deployed by</strong> GitHub Actions on every push, from infrastructure written in Terraform</li>
+  <li><strong>This page right now</strong> came from server <code>{{ instance.id }}</code> in {{ instance.az }}, running commit <code>{{ commit }}</code></li>
+</ul>

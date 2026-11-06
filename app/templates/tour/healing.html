@@ -1,0 +1,12 @@
+<p class="lead">The server is disposable. If it's destroyed, a new one takes its place at the same address, with nobody touching anything.</p>
+<dl class="facts big-facts">
+  <dt>Serving this page</dt><dd><code>{{ instance.id }}</code> ({{ instance.type }}, {{ instance.az }})</dd>
+  <dt>This server has been up</dt><dd>{{ server_up }}</dd>
+  <dt>This version has been up</dt><dd>{{ process_up }}</dd>
+</dl>
+<ul class="facts-list">
+  <li>An Auto Scaling group keeps exactly one server running.</li>
+  <li>A new server claims the same public IP, reads which version was last deployed, and runs the normal deploy script.</li>
+  <li>All data lives outside the server, in the database, so nothing is lost.</li>
+  <li>When I destroyed the server on purpose, the site was back in about two minutes.</li>
+</ul>

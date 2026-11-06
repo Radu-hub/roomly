@@ -1,0 +1,14 @@
+<p class="lead">Fifty bookings for the same room and time, sent from this browser at the same instant. Exactly one should win.</p>
+{% if ctx %}
+<p><button id="race-button" class="primary big" data-csrf="{{ csrf }}" data-slot-url="/tour/race-slot">Send 50 bookings at once</button></p>
+<div id="race-result" class="race-result" aria-live="polite"></div>
+{% else %}
+<form method="post" action="/demo-login" class="actions">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <input type="hidden" name="slug" value="acme">
+  <input type="hidden" name="role" value="employee">
+  <input type="hidden" name="next" value="/tour/{{ number }}">
+  <button class="primary">Sign in as an Acme employee to run it</button>
+</form>
+{% endif %}
+<p>The app doesn't check first and hope. PostgreSQL has a rule, an <em>exclusion constraint</em>, that refuses any two active bookings of one room that overlap in time. The other 49 are told the room was just booked by someone else. The winning booking is cancelled afterwards, so the demo leaves no trace.</p>

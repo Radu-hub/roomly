@@ -1,0 +1,7 @@
+<ul class="facts-list">
+  <li><strong>Two open ports, no SSH.</strong> Only 80 and 443 are open. When I need a shell, AWS Session Manager gives me one, and it's logged.</li>
+  <li><strong>A private database.</strong> It accepts connections only from the app server, and only over encrypted connections.</li>
+  <li><strong>No secrets in the repo.</strong> Terraform generates the passwords and stores them encrypted in Parameter Store. CI scans every push for leaked secrets.</li>
+  <li><strong>No AWS keys anywhere.</strong> GitHub gets short-lived credentials, and only for the main branch of this repository.</li>
+  <li><strong>Companies walled off by the database.</strong> The app connects as a restricted user, and refuses to start with one that could see every company's data. Right now: <strong>{{ 'enforced' if health.checks.database.rls_enforced else 'NOT enforced' }}</strong>.</li>
+</ul>

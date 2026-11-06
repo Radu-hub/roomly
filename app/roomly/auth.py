@@ -78,12 +78,13 @@ async def require_csrf(request: Request) -> None:
         raise HTTPException(status_code=403, detail="Your session expired. Please try again.")
 
 
-def start_session(request: Request, user: dict, org_id: int) -> None:
+def start_session(request: Request, user: dict, org_id: int, slug: str) -> None:
     """Replace the session on login, including its CSRF token."""
     request.session.clear()
     request.session.update(
         user_id=user["id"],
         org_id=org_id,
+        slug=slug,
         role=user["role"],
         name=user["name"],
         csrf=secrets.token_urlsafe(32),

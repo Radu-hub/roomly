@@ -1,0 +1,10 @@
+<table class="choices">
+  <thead><tr><th scope="col">Choice</th><th scope="col">Picked</th><th scope="col">Considered</th><th scope="col">Why</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Server</th><td>t4g.micro (ARM)</td><td>t3.micro (Intel)</td><td>Both are free tier. ARM gives more performance for the money, and switching back is one line.</td></tr>
+    <tr><th scope="row">Linux</th><td>Amazon Linux 2023</td><td>Ubuntu</td><td>There's no SSH, so the server must set itself up and be managed by AWS tools. Amazon Linux has them built in.</td></tr>
+    <tr><th scope="row">Database</th><td>RDS PostgreSQL</td><td>DynamoDB</td><td>"No double bookings" and "no company sees another's data" are enforced by Postgres itself. In DynamoDB they'd be application code.</td></tr>
+    <tr><th scope="row">Traffic</th><td>Caddy + fixed IP</td><td>Load balancer</td><td>A load balancer costs about $16 a month to sit in front of one server.</td></tr>
+  </tbody>
+</table>
+<p class="tradeoff"><strong>Tradeoff I accepted:</strong> one server means a couple of minutes of downtime if it dies.</p>

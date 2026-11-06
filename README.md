@@ -4,6 +4,8 @@ A multi-tenant meeting-room booking app: several organizations share one deploym
 
 **Live app:** https://roomly.52-26-107-185.sslip.io · **Status page:** https://roomly.52-26-107-185.sslip.io/status · **Health check:** https://roomly.52-26-107-185.sslip.io/health
 
+**Presentation:** the app has a short built-in tour of how it's built and run, at `/tour` ("How it's built" in the header), with live facts from the server that renders it and a button that runs the 50-booking race from your browser.
+
 No sign-up is needed: the landing page has one-click demo logins, and demo data resets nightly.
 
 ## Architecture

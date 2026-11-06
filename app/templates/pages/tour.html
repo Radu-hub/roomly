@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }} · How Roomly is built{% endblock %}
+{% block scripts %}<script src="/static/tour.js" defer></script>{% endblock %}
+{% block content %}
+<article class="slide" aria-labelledby="slide-heading">
+  <p class="slide-count">{{ number }} / {{ total }}</p>
+  <h1 id="slide-heading">{{ heading }}</h1>
+  {% include "tour/" ~ slide ~ ".html" %}
+</article>
+<nav class="slide-nav" aria-label="Slides">
+  {% if number > 1 %}<a class="button" rel="prev" href="/tour/{{ number - 1 }}">◀ Back</a>{% else %}<span></span>{% endif %}
+  <span class="muted">Arrow keys work too</span>
+  {% if number < total %}<a class="button primary" rel="next" href="/tour/{{ number + 1 }}">Next ▶</a>{% else %}<a class="button" href="/">Home</a>{% endif %}
+</nav>
+{% endblock %}

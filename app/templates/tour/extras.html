@@ -1,0 +1,9 @@
+<p class="lead">The assignment listed these as optional. I used all five, each for a reason.</p>
+<ul class="facts-list">
+  <li><strong>Terraform:</strong> the whole environment is code I can review, rebuild, and destroy with one command, so nothing is left billing.</li>
+  <li><strong>GitHub Actions:</strong> every push is tested, then deployed. If the new version fails its health check, it rolls back by itself.</li>
+  <li><strong>Docker:</strong> what I test is exactly what runs in production.</li>
+  <li><strong>HTTPS:</strong> a free certificate that renews itself. It should be the default.</li>
+  <li><strong>Monitoring:</strong> a probe outside the server checks this site every five minutes and emails me if it fails twice.</li>
+</ul>
+<p class="muted">This page is running commit <code>{{ commit }}</code>, version {{ version }}. <a href="{{ repo_url }}/actions">See the pipeline on GitHub</a>.</p>

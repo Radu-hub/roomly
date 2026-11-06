@@ -10,17 +10,21 @@
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/app.css">
   <script src="/static/htmx.min.js" defer></script>
+  {% block scripts %}{% endblock %}
 </head>
 <body hx-headers='{"X-CSRF-Token": "{{ csrf }}"}'>
   <header class="site-header">
     <a class="brand" href="{% if ctx %}/o/{{ ctx.slug }}/day{% else %}/{% endif %}">🥭 Roomly</a>
-    {% if ctx %}
     <nav aria-label="Main">
+      {% if ctx %}
       <a href="/o/{{ ctx.slug }}/day">Day</a>
       <a href="/o/{{ ctx.slug }}/find">Find a room</a>
       <a href="/o/{{ ctx.slug }}/me">My bookings</a>
       {% if ctx.is_admin %}<a href="/o/{{ ctx.slug }}/admin/rooms">Rooms</a>{% endif %}
+      {% endif %}
+      <a href="/tour">How it's built</a>
     </nav>
+    {% if ctx %}
     <div class="who">
       <span>{{ ctx.org.name }} · {{ ctx.name }} ({{ ctx.role }})</span>
       <form method="post" action="/logout">

@@ -1,0 +1,9 @@
+<p class="lead">The first deploy failed before it built anything: AWS said GitHub was "not authorized" to use the deploy role, with no other detail.</p>
+<ol class="steps">
+  <li>Was the role name wrong? <strong>No</strong>, it matched.</li>
+  <li>Was GitHub's identity provider set up wrong in AWS? <strong>No</strong>, the address and audience matched.</li>
+  <li>Was it the wrong branch? <strong>No</strong>, it was main.</li>
+  <li>How does GitHub identify this repository? <strong>That was it.</strong> New repositories include numeric IDs, and my AWS policy expected the old format.</li>
+</ol>
+<p><strong>Fix:</strong> the exact value is now a required setting, read from GitHub's API. <strong>Prevention:</strong> it's in the runbook, with the one command that confirms it.</p>
+<p><a href="{{ repo_url }}/blob/main/docs/POSTMORTEM.md">Read the full postmortem</a></p>

@@ -1,0 +1,10 @@
+<p class="lead">A health check that proves the whole path works, not just that the process is running.</p>
+<dl class="facts big-facts">
+  <dt>Overall</dt><dd><span class="badge {{ 'ok' if health_ok else 'bad' }}">{{ health.status }}</span></dd>
+  <dt>Database</dt><dd>{{ health.checks.database.status }}{% if health.checks.database.latency_ms is defined %}, answered in {{ health.checks.database.latency_ms }} ms{% endif %}</dd>
+  <dt>Tenant isolation</dt><dd>{{ 'enforced by the database' if health.checks.database.rls_enforced else 'NOT enforced' }}</dd>
+  <dt>Schema version</dt><dd><code>{{ health.checks.database.schema_version }}</code></dd>
+  {% if health.stats %}<dt>Data read back</dt><dd>{{ health.stats.organizations }} organizations, {{ health.stats.bookings_today }} bookings today</dd>{% endif %}
+  <dt>Version</dt><dd><code>{{ health.commit[:7] }}</code>, served by <code>{{ health.instance.id }}</code></dd>
+</dl>
+<p><a href="/health">See the raw /health response</a>, which is what the monitoring checks every five minutes.</p>

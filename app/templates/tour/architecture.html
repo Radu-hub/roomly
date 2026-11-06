@@ -1,0 +1,29 @@
+<div class="flow" role="img" aria-label="A request goes from the browser to a fixed public IP, then to Caddy and the app on one EC2 server, then to PostgreSQL in a private network, and back.">
+  <div class="node">🌐<strong>Your browser</strong></div>
+  <div class="arrow"><span class="num">1</span>HTTPS</div>
+  <div class="node">📍<strong>Fixed public IP</strong><small>Elastic IP</small></div>
+  <div class="arrow"></div>
+  <div class="zone">
+    <p class="zone-label">EC2 server · ports 80 + 443 only</p>
+    <div class="zone-row">
+      <div class="node">🔒<strong>Caddy</strong><small>HTTPS certificate</small></div>
+      <div class="arrow"><span class="num">2</span></div>
+      <div class="node">🐳<strong>Roomly app</strong><small>Docker</small></div>
+    </div>
+  </div>
+  <div class="arrow"><span class="num">3</span>SQL, TLS</div>
+  <div class="zone private">
+    <p class="zone-label">Private network · no internet</p>
+    <div class="node">🗄️<strong>PostgreSQL</strong><small>RDS</small></div>
+  </div>
+</div>
+<div class="side-flows">
+  <p><strong>Deploys:</strong> GitHub Actions → image to ECR → SSM runs the deploy script on the server</p>
+  <p><strong>Monitoring:</strong> a Lambda checks the public site every 5 minutes → CloudWatch alarm → email</p>
+</div>
+<ol class="steps">
+  <li>Your browser connects over HTTPS to a <strong>fixed public IP address</strong>.</li>
+  <li><strong>Caddy</strong> holds the certificate and passes the request to the app in Docker.</li>
+  <li>The app queries <strong>PostgreSQL</strong> in a private network, which filters every row to your company and refuses double bookings. The page goes back the same way.</li>
+</ol>
+<p class="muted"><a href="/static/architecture.png">Open the full architecture diagram</a></p>

@@ -22,7 +22,7 @@ from roomly.auth import LoginRequired
 from roomly.config import Settings, load_settings
 from roomly.logging import configure_logging
 from roomly.metadata import InstanceInfo, fetch_instance_info
-from roomly.routes import admin, bookings, grid, health, public
+from roomly.routes import admin, bookings, grid, health, public, tour
 from roomly.web import BASE_DIR, is_htmx, render, wants_json
 
 log = logging.getLogger("roomly")
@@ -131,7 +131,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     _add_exception_handlers(app)
     app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
-    for module in (health, public, grid, bookings, admin):
+    for module in (health, public, grid, bookings, admin, tour):
         app.include_router(module.router)
     return app
 

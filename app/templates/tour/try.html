@@ -1,0 +1,19 @@
+<p class="lead">Sign in with a demo account, book a room, and the booking is saved to the database and read back into the grid.</p>
+{% if demo_mode %}
+<div class="demo-buttons">
+  {% for slug, role, label in [("acme", "employee", "Open Acme as an employee"), ("acme", "admin", "Open Acme as an admin")] %}
+  <form method="post" action="/demo-login">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <input type="hidden" name="slug" value="{{ slug }}">
+    <input type="hidden" name="role" value="{{ role }}">
+    <button class="primary">{{ label }}</button>
+  </form>
+  {% endfor %}
+</div>
+{% endif %}
+<ul class="facts-list">
+  <li>If someone books the slot while you're filling in the form, you're told <em>"Someone else just booked this room"</em>, and who has it.</li>
+  <li>If it was already taken before you opened the form, it says <em>"already booked"</em> instead.</li>
+  <li>The form only offers lengths that fit before the next booking.</li>
+</ul>
+<p class="muted">"How it's built" in the header brings you back to this presentation.</p>

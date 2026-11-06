@@ -1,5 +1,7 @@
 """Landing page, status page, and signing in and out."""
 
+import re
+
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
@@ -31,7 +33,9 @@ def status_page(request: Request) -> Response:
 
 
 @router.post("/demo-login", dependencies=[Depends(require_csrf)])
-def demo_login(request: Request, slug: str = Form(), role: str = Form()) -> Response:
+def demo_login(
+    request: Request, slug: str = Form(), role: str = Form(), next: str = Form("")
+) -> Response:
     if not request.app.state.settings.demo_mode:
         raise HTTPException(status_code=404, detail="Not found.")
     email = DEMO_USERS.get((slug, role))
@@ -41,7 +45,10 @@ def demo_login(request: Request, slug: str = Form(), role: str = Form()) -> Resp
     user = auth.find_user_by_email(org["id"], email)
     if user is None:
         raise HTTPException(status_code=404, detail="Demo data hasn't been seeded.")
-    auth.start_session(request, user, org["id"])
+    auth.start_session(request, user, org["id"], org["slug"])
+    # Only back into the presentation: an open redirect would let other sites use ours.
+    if re.fullmatch(r"/tour/\d+", next):
+        return RedirectResponse(next, status_code=303)
     return RedirectResponse(f"/o/{slug}/day", status_code=303)
 
 
@@ -57,7 +64,7 @@ def login(slug: str, request: Request, email: str = Form(), password: str = Form
     stored_hash = user["password_hash"] if user else None
     if not auth.verify_password(stored_hash, password):
         return render(request, "pages/login.html", status_code=401, org=org, error=auth.LOGIN_ERROR)
-    auth.start_session(request, user, org["id"])
+    auth.start_session(request, user, org["id"], org["slug"])
     return RedirectResponse(f"/o/{slug}/day", status_code=303)
 
 
